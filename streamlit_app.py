@@ -141,7 +141,7 @@ def main():
             background-color: #1E90FF !important; /* Blue color */
         }
         /* Target the slider handle */
-        .stSlider > div > div > div:nth-child(2) > div:nth-child(1) {
+        .stSlider > div > div > div:nth-child(2) > div:nth-child(2) {
             background-color: #1E90FF !important; /* Blue color for the fill */
         }
         </style>
@@ -235,13 +235,7 @@ def main():
             delta=f"{(probability - GLOBAL_MEAN_TARGET) * 100:.1f} pts"
         )
         
-        # Simple assessment text
-        if probability > 0.85:
-            st.success("High Likelihood of Repayment. 👍")
-        elif probability < 0.70:
-            st.warning("Higher Risk of Default. 🛑")
-        else:
-            st.info("Moderate Risk Profile. ⚠️")
+        # NOTE: The dynamic risk assessment message (st.success/st.warning/st.info) has been removed as requested.
 
         st.markdown("---")
         st.write("#### Key Input Summary")
