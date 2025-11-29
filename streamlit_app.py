@@ -199,14 +199,14 @@ def main():
     probability, shap_values, expected_value = predict_and_explain(model, input_df)
     risk_percentage = probability * 100
     
-    # Use two columns for the main content
-    col1, col2 = st.columns([1, 2])
+    # Use two columns for the main content - Changed from [1, 2] to [1, 1] for 50/50 symmetry
+    col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Larger, blue probability display
+        # Repayment Score - Using standard markdown for consistency, keeping blue style
         st.markdown(
-            f"<h2 style='color: #1E90FF; font-weight: bold;'>Repayment Score:</h2>"
-            f"<h1 style='color: #1E90FF; font-weight: bolder;'>{risk_percentage:.1f}%</h1>", 
+            f"<h3 style='color: #1E90FF; font-weight: bold;'>Repayment Probability:</h3>"
+            f"<h1 style='color: #1E90FF; font-weight: bolder; margin-top: -10px;'>{risk_percentage:.1f}%</h1>", 
             unsafe_allow_html=True
         )
         
@@ -228,24 +228,27 @@ def main():
         st.markdown("---")
         st.write("#### Key Input Summary")
         
-        # Summarize inputs to balance the column
-        st.markdown("##### Financial Metrics (Scaled)")
-        st.markdown(f"**Annual Income:** `{user_input['annual_income']:.2f}`")
-        st.markdown(f"**Credit Score:** `{user_input['credit_score']:.2f}`")
-        st.markdown(f"**Loan Amount:** `{user_input['loan_amount']:.2f}`")
-        st.markdown(f"**Interest Rate:** `{user_input['interest_rate']:.2f}`")
-        
-        st.markdown("---")
-        st.markdown("##### Profile Metrics (Selected)")
-        
-        # Categorical Inputs summary
-        for original_col in ['gender', 'employment_status', 'loan_purpose', 'grade_letter']:
-            te_value = user_input[f'TE_{original_col}']
-            selected_label = next(
-                (key for key, value in TE_MAPPINGS[original_col].items() if value == te_value),
-                "N/A"
-            )
-            st.markdown(f"**{original_col.replace('_', ' ').title()}:** `{selected_label}`")
+        # New: 2 Sub-columns for financial vs profile metrics
+        sub_col1, sub_col2 = st.columns(2)
+
+        with sub_col1:
+            st.markdown("##### Financial Metrics (Scaled)")
+            st.markdown(f"**Annual Income:** `{user_input['annual_income']:.2f}`")
+            st.markdown(f"**Credit Score:** `{user_input['credit_score']:.2f}`")
+            st.markdown(f"**Loan Amount:** `{user_input['loan_amount']:.2f}`")
+            st.markdown(f"**Interest Rate:** `{user_input['interest_rate']:.2f}`")
+
+        with sub_col2:
+            st.markdown("##### Profile Metrics (Selected)")
+            
+            # Categorical Inputs summary
+            for original_col in ['gender', 'employment_status', 'loan_purpose', 'grade_letter']:
+                te_value = user_input[f'TE_{original_col}']
+                selected_label = next(
+                    (key for key, value in TE_MAPPINGS[original_col].items() if value == te_value),
+                    "N/A"
+                )
+                st.markdown(f"**{original_col.replace('_', ' ').title()}:** `{selected_label}`")
 
     # Display the SHAP Explanation (Local Interpretability)
     with col2:
