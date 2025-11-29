@@ -7,55 +7,55 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # --- Global Constants ---
-MODEL_PATH = "xgboost_model.json" 
-FINAL_FEATURES = [ 
-    'annual_income', 
-    'debt_to_income_ratio', 
-    'credit_score', 
-    'loan_amount', 
-    'interest_rate', 
-    'age', 
-    'monthly_income', 
-    'loan_term', 
-    'installment', 
-    'num_of_open_accounts', 
-    'total_credit_limit', 
-    'current_balance', 
-    'delinquency_history', 
-    'public_records', 
-    'num_of_delinquencies', 
-    'income_loan_ratio', 
-    'loan_to_income', 
-    'total_debt', 
-    'available_income', 
-    'monthly_payment_approx', 
-    'payment_to_income', 
-    'default_risk_score', 
-    'grade_number', 
-    'TE_gender', 
-    'TE_marital_status', 
-    'TE_education_level', 
-    'TE_employment_status', 
-    'TE_loan_purpose', 
-    'TE_grade_subgrade', 
+MODEL_PATH = "xgboost_model.json"
+FINAL_FEATURES = [
+    'annual_income',
+    'debt_to_income_ratio',
+    'credit_score',
+    'loan_amount',
+    'interest_rate',
+    'age',
+    'monthly_income',
+    'loan_term',
+    'installment',
+    'num_of_open_accounts',
+    'total_credit_limit',
+    'current_balance',
+    'delinquency_history',
+    'public_records',
+    'num_of_delinquencies',
+    'income_loan_ratio',
+    'loan_to_income',
+    'total_debt',
+    'available_income',
+    'monthly_payment_approx',
+    'payment_to_income',
+    'default_risk_score',
+    'grade_number',
+    'TE_gender',
+    'TE_marital_status',
+    'TE_education_level',
+    'TE_employment_status',
+    'TE_loan_purpose',
+    'TE_grade_subgrade',
     'TE_grade_letter'
 ]
 GLOBAL_MEAN_TARGET = 0.798820
-NUMERICAL_STATS_MAPPING = [
-'annual_income': {'mean': -0.00, 'std': 1.00, 'min': -1.58, 'max': 12.92},
-'debt_to_income_ratio': {'mean': -0.00, 'std': 1.00, 'min': -1.60, 'max': 7.38},
-'credit_score': {'mean': 0.00, 'std': 1.00, 'min': -5.16, 'max': 3.03},
-'loan_amount': {'mean': 0.00, 'std': 1.00, 'min': -2.10, 'max': 4.90},
-'interest_rate': {'mean': -0.00, 'std': 1.00, 'min': -4.56, 'max': 4.30},
-'income_loan_ratio': {'mean': -0.00, 'std': 1.00, 'min': -0.56, 'max': 44.59},
-'loan_to_income': {'mean': 0.00, 'std': 1.00, 'min': -1.16, 'max': 13.75},
-'total_debt': {'mean': -0.00, 'std': 1.00, 'min': -1.15, 'max': 25.68},
-'available_income': {'mean': 0.00, 'std': 1.00, 'min': -1.65, 'max': 14.12},
-'monthly_payment_approx': {'mean': 0.00, 'std': 1.00, 'min': -1.99, 'max': 7.21},
-'payment_to_income': {'mean': -0.00, 'std': 1.00, 'min': -1.12, 'max': 14.06},
-'default_risk_score': {'mean': -0.00, 'std': 1.00, 'min': -3.07, 'max': 6.90},
-'grade_number': {'mean': 0.00, 'std': 1.00, 'min': -1.42, 'max': 1.43}
-]
+NUMERICAL_STATS_MAPPING = { 
+    'annual_income': {'mean': -0.00, 'std': 1.00, 'min': -1.58, 'max': 12.92}, # FIX 2: Added comma
+    'debt_to_income_ratio': {'mean': -0.00, 'std': 1.00, 'min': -1.60, 'max': 7.38}, # FIX 2: Added comma
+    'credit_score': {'mean': 0.00, 'std': 1.00, 'min': -5.16, 'max': 3.03}, # FIX 2: Added comma
+    'loan_amount': {'mean': 0.00, 'std': 1.00, 'min': -2.10, 'max': 4.90}, # FIX 2: Added comma
+    'interest_rate': {'mean': -0.00, 'std': 1.00, 'min': -4.56, 'max': 4.30}, # FIX 2: Added comma
+    'income_loan_ratio': {'mean': -0.00, 'std': 1.00, 'min': -0.56, 'max': 44.59}, # FIX 2: Added comma
+    'loan_to_income': {'mean': 0.00, 'std': 1.00, 'min': -1.16, 'max': 13.75}, # FIX 2: Added comma
+    'total_debt': {'mean': -0.00, 'std': 1.00, 'min': -1.15, 'max': 25.68}, # FIX 2: Added comma
+    'available_income': {'mean': 0.00, 'std': 1.00, 'min': -1.65, 'max': 14.12}, # FIX 2: Added comma
+    'monthly_payment_approx': {'mean': 0.00, 'std': 1.00, 'min': -1.99, 'max': 7.21}, # FIX 2: Added comma
+    'payment_to_income': {'mean': -0.00, 'std': 1.00, 'min': -1.12, 'max': 14.06}, # FIX 2: Added comma
+    'default_risk_score': {'mean': -0.00, 'std': 1.00, 'min': -3.07, 'max': 6.90}, # FIX 2: Added comma
+    'grade_number': {'mean': 0.00, 'std': 1.00, 'min': -1.42, 'max': 1.43}
+}
 
 # --- 1. CACHED RESOURCES ---
 
