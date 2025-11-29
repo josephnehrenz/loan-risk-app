@@ -9,13 +9,13 @@ An interactive web application that predicts loan repayment probability and prov
 
 The Loan Risk Advisor helps financial institutions and loan officers assess applicant risk through two main components:
 
-** Applicant Prediction Page:**
+**Applicant Prediction Page:**
 - Input applicant financial and demographic information
 - Get real-time repayment probability scores
 - View SHAP waterfall plots explaining feature contributions
 - Compare against global average repayment rates
 
-** Model Insights Page:**
+**Model Insights Page:**
 - Explore global feature importance using SHAP analysis
 - Understand key drivers of loan repayment decisions
 - View feature distributions and model behavior patterns
