@@ -42,20 +42,21 @@ FINAL_FEATURES = [
 ]
 GLOBAL_MEAN_TARGET = 0.798820
 NUMERICAL_STATS_MAPPING = { 
-    'annual_income': {'mean': -0.00, 'std': 1.00, 'min': -1.58, 'max': 12.92}, # FIX 2: Added comma
-    'debt_to_income_ratio': {'mean': -0.00, 'std': 1.00, 'min': -1.60, 'max': 7.38}, # FIX 2: Added comma
-    'credit_score': {'mean': 0.00, 'std': 1.00, 'min': -5.16, 'max': 3.03}, # FIX 2: Added comma
-    'loan_amount': {'mean': 0.00, 'std': 1.00, 'min': -2.10, 'max': 4.90}, # FIX 2: Added comma
-    'interest_rate': {'mean': -0.00, 'std': 1.00, 'min': -4.56, 'max': 4.30}, # FIX 2: Added comma
-    'income_loan_ratio': {'mean': -0.00, 'std': 1.00, 'min': -0.56, 'max': 44.59}, # FIX 2: Added comma
-    'loan_to_income': {'mean': 0.00, 'std': 1.00, 'min': -1.16, 'max': 13.75}, # FIX 2: Added comma
-    'total_debt': {'mean': -0.00, 'std': 1.00, 'min': -1.15, 'max': 25.68}, # FIX 2: Added comma
-    'available_income': {'mean': 0.00, 'std': 1.00, 'min': -1.65, 'max': 14.12}, # FIX 2: Added comma
-    'monthly_payment_approx': {'mean': 0.00, 'std': 1.00, 'min': -1.99, 'max': 7.21}, # FIX 2: Added comma
-    'payment_to_income': {'mean': -0.00, 'std': 1.00, 'min': -1.12, 'max': 14.06}, # FIX 2: Added comma
-    'default_risk_score': {'mean': -0.00, 'std': 1.00, 'min': -3.07, 'max': 6.90}, # FIX 2: Added comma
+    'annual_income': {'mean': -0.00, 'std': 1.00, 'min': -1.58, 'max': 12.92},
+    'debt_to_income_ratio': {'mean': -0.00, 'std': 1.00, 'min': -1.60, 'max': 7.38},
+    'credit_score': {'mean': 0.00, 'std': 1.00, 'min': -5.16, 'max': 3.03},
+    'loan_amount': {'mean': 0.00, 'std': 1.00, 'min': -2.10, 'max': 4.90},
+    'interest_rate': {'mean': -0.00, 'std': 1.00, 'min': -4.56, 'max': 4.30},
+    'income_loan_ratio': {'mean': -0.00, 'std': 1.00, 'min': -0.56, 'max': 44.59},
+    'loan_to_income': {'mean': 0.00, 'std': 1.00, 'min': -1.16, 'max': 13.75},
+    'total_debt': {'mean': -0.00, 'std': 1.00, 'min': -1.15, 'max': 25.68},
+    'available_income': {'mean': 0.00, 'std': 1.00, 'min': -1.65, 'max': 14.12},
+    'monthly_payment_approx': {'mean': 0.00, 'std': 1.00, 'min': -1.99, 'max': 7.21},
+    'payment_to_income': {'mean': -0.00, 'std': 1.00, 'min': -1.12, 'max': 14.06},
+    'default_risk_score': {'mean': -0.00, 'std': 1.00, 'min': -3.07, 'max': 6.90},
     'grade_number': {'mean': 0.00, 'std': 1.00, 'min': -1.42, 'max': 1.43}
 }
+
 
 # --- 1. CACHED RESOURCES ---
 
@@ -73,7 +74,7 @@ def generate_synthetic_data(num_samples=1000):
         if feature.startswith('TE_'):
             # Use the global mean for target-encoded features
             data[feature] = np.random.normal(loc=GLOBAL_MEAN_TARGET, scale=0.05, size=num_samples)
-        
+            
         elif feature in NUMERICAL_STATS_MAPPING:
             # Use the actual mean and std from your scaled data
             stats = NUMERICAL_STATS_MAPPING[feature]
@@ -83,12 +84,7 @@ def generate_synthetic_data(num_samples=1000):
             data[feature] = np.clip(data[feature], stats['min'], stats['max'])
 
         else:
-            # Handle the 'Binary' features if they weren't explicitly scaled/encoded.
-            # Assuming the Binary features in your log (like 'age', 'loan_term') 
-            # are actually numerical and were scaled along with the others. 
-            # If they are NOT in NUMERICAL_STATS_MAPPING, treat them as continuous for now
-            # and adjust if issues arise. For now, rely on the mapping.
-            pass 
+            data[feature] = np.random.normal(loc=0.0, scale=1.0, size=num_samples)
 
     return pd.DataFrame(data)
 
@@ -110,16 +106,26 @@ def app():
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(data_sample)
 
+    # Check if SHAP returned a list (standard for binary classification)
+    if isinstance(shap_values, list):
+        # We target the positive class (index 1) which is the full matrix (N_samples, N_features)
+        shap_matrix = shap_values[1]
+    else:
+        # If it's not a list, it must be the single matrix (N_samples, N_features)
+        shap_matrix = shap_values
+        
     # Plot the SHAP Summary Plot
     fig, ax = plt.subplots(figsize=(10, 6))
-    shap.summary_plot(shap_values[1], data_sample, show=False, max_display=15) # [1] for the positive class
-    st.pyplot(fig)
+    # Pass the confirmed 2D matrix to the plot function
+    shap.summary_plot(shap_matrix, data_sample, show=False, max_display=15) 
+    st.pyplot(fig) 
 
     # --- Section 2: Feature Relationship Plots (New Charts) ---
     st.header("2. Key Feature Relationships")
     
     # We use the model to predict on the synthetic data to get a target probability
-    data_sample['Predicted_Risk'] = model.predict_proba(data_sample)[:, 0] # 0 = default risk
+    # 0 = default risk (Predicted_Risk is the probability of default)
+    data_sample['Predicted_Risk'] = model.predict_proba(data_sample)[:, 0] 
     
     col1, col2 = st.columns(2)
     
@@ -136,18 +142,20 @@ def app():
             ax=ax
         )
         ax.set_title("Predicted Risk Distribution (Synthetic Data)")
-        st.pyplot(fig)
+        st.pyplot(fig) 
         
-
     # Chart B: Feature Distribution (Histogram)
     with col2:
-        st.subheader("Distribution of CIBIL Score")
+        # Ensure 'credit_score' is used as 'cibil_score' wasn't in the final features list.
+        st.subheader("Distribution of Credit Score")
         fig, ax = plt.subplots(figsize=(8, 6))
-        sns.histplot(data_sample['cibil_score'], kde=True, bins=30, color='skyblue', ax=ax)
-        ax.axvline(data_sample['cibil_score'].mean(), color='red', linestyle='--', label='Mean Score')
-        ax.set_title("Distribution of CIBIL Scores")
-        st.pyplot(fig)
-        
+        sns.histplot(data_sample['credit_score'], kde=True, bins=30, color='skyblue', ax=ax)
+        ax.axvline(data_sample['credit_score'].mean(), color='red', linestyle='--', label='Mean Score')
+        ax.set_title("Distribution of Credit Scores (Scaled)")
+        st.pyplot(fig) 
+
+[Image of a histogram plot showing the frequency distribution of Credit scores]
+
 
 
 if __name__ == "__main__":
