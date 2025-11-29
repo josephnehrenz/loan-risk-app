@@ -3,7 +3,7 @@
 # It imports and runs the main function from your actual primary page 
 # located in the 'pages' subdirectory.
 
-from pages.1_Loan_Predictor import main
+from pages.p1_Loan_Predictor import main
 
 if __name__ == "__main__":
     main()
