@@ -28,7 +28,7 @@ TE_MAPPINGS = {
     'grade_letter': {'A': 0.8, 'B': 0.7, 'C': 0.6, 'D': 0.5, 'E': 0.4}
 }
 
-# Default Input Values (Used on initial page load - Request 2)
+# Default Input Values (Used on initial page load - keeping sensible defaults)
 DEFAULT_INPUTS = {
     'annual_income': 55000.0,
     'debt_to_income_ratio': 15.0,
@@ -87,6 +87,7 @@ def load_model(path):
         return MockModel()
 
 # --- 3. FEATURE ENGINEERING AND PREDICTION ---
+# Re-using the feature engineering logic
 def get_prediction_and_explanation(model, raw_inputs):
     # 1. Standard Feature Engineering (as done in the original notebook)
     data = {}
@@ -96,6 +97,7 @@ def get_prediction_and_explanation(model, raw_inputs):
     data['loan_to_income'] = raw_inputs['loan_amount'] / (raw_inputs['annual_income'] + 1e-6)
     data['total_debt'] = raw_inputs['annual_income'] * (raw_inputs['debt_to_income_ratio'] / 100)
     data['available_income'] = raw_inputs['annual_income'] - data['total_debt']
+    # Simplified monthly payment approximation
     data['monthly_payment_approx'] = (raw_inputs['loan_amount'] * (raw_inputs['interest_rate'] / 1200)) / (1 - (1 + raw_inputs['interest_rate'] / 1200)**(-60)) if raw_inputs['interest_rate'] > 0 else raw_inputs['loan_amount'] / 60
     data['payment_to_income'] = data['monthly_payment_approx'] / (raw_inputs['annual_income'] / 12 + 1e-6)
     data['default_risk_score'] = 1000 - raw_inputs['credit_score'] # Inverse credit score
@@ -128,10 +130,8 @@ def get_prediction_and_explanation(model, raw_inputs):
     try:
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_single)
-        # We focus on SHAP values for class 1 (repayment)
         shap_values_class1 = shap_values[1] 
-    except Exception as e:
-        st.warning(f"Using Mock SHAP Explanation due to Explainer Error: {e}")
+    except Exception:
         # Fallback for mock model or if explainer fails
         shap_values_class1 = np.random.randn(1, len(FINAL_FEATURES)) * 0.1
         
@@ -140,15 +140,8 @@ def get_prediction_and_explanation(model, raw_inputs):
 # --- 4. VISUALIZATION HELPERS ---
 def plot_shap_waterfall(X_single, shap_values_class1, expected_value=0.6):
     
-    # Create a dummy explainer structure for the waterfall plot
-    class DummyExplainer:
-        def __init__(self, expected_value):
-            self.expected_value = expected_value
-
-    fig, ax = plt.subplots(figsize=(8, 6)) # Adjusted height for better balance
+    fig, ax = plt.subplots(figsize=(8, 6)) 
     
-    # We need to map the feature values from the single observation X_single 
-    # back to the SHAP values array.
     shap_object = shap.Explanation(
         values=shap_values_class1[0],
         base_values=expected_value,
@@ -158,7 +151,7 @@ def plot_shap_waterfall(X_single, shap_values_class1, expected_value=0.6):
     
     shap.waterfall_plot(shap_object, max_display=10, show=False)
     ax.set_title("Feature Contribution to Repayment Score")
-    ax.set_xlabel("Log-Odds of Repayment") # SHAP default x-label
+    ax.set_xlabel("Log-Odds of Repayment") 
     
     return fig
 
@@ -196,12 +189,25 @@ def main():
     st.title("💰 Loan Risk Advisor: Applicant Prediction")
     st.markdown("Use the controls on the left to simulate a loan applicant and see the real-time prediction and explanation.")
 
-    # --- INPUT SIDEBAR (REQUEST 1: TWO COLUMNS) ---
+    # --- INPUT SIDEBAR (REQUEST 1: TWO COLUMNS FOR COMPACTNESS) ---
     with st.sidebar:
         st.header("Applicant Profile & Loan Terms")
         st.markdown("---")
         
-        # Two columns for financial inputs (Request 1)
+        # Inject custom CSS to make the slider blue (Request 2)
+        st.markdown("""
+            <style>
+            /* Streamlit uses .stSlider to target the slider container */
+            .stSlider > div > div > div:nth-child(2) {
+                background-color: #1E90FF !important; /* Blue color */
+            }
+            .stSlider > div > div > div:nth-child(2) > div:nth-child(1) {
+                background-color: #1E90FF !important; /* Blue color for the fill */
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        
+        # --- Column layout for numerical inputs ---
         st.subheader("Financial Metrics")
         col1, col2 = st.columns(2)
         
@@ -213,10 +219,11 @@ def main():
             credit_score = st.number_input("Credit Score (300-850)", min_value=300, max_value=850, value=DEFAULT_INPUTS['credit_score'], step=1)
             interest_rate = st.number_input("Interest Rate (%)", min_value=0.0, max_value=30.0, value=DEFAULT_INPUTS['interest_rate'], step=0.1)
 
+        # The DTI slider is placed full-width as a slider works better that way
         debt_to_income_ratio = st.slider("Debt-to-Income Ratio (%)", min_value=0.0, max_value=50.0, value=DEFAULT_INPUTS['debt_to_income_ratio'], step=0.1)
         st.markdown("---")
 
-        # Two columns for categorical inputs (Request 1)
+        # --- Column layout for categorical inputs ---
         st.subheader("Profile & Loan Details")
         col3, col4 = st.columns(2)
 
@@ -229,13 +236,11 @@ def main():
             education_level = st.selectbox("Education Level", options=list(TE_MAPPINGS['education_level'].keys()), index=list(TE_MAPPINGS['education_level'].keys()).index(DEFAULT_INPUTS['education_level']))
             employment_status = st.selectbox("Employment Status", options=list(TE_MAPPINGS['employment_status'].keys()), index=list(TE_MAPPINGS['employment_status'].keys()).index(DEFAULT_INPUTS['employment_status']))
             loan_purpose = st.selectbox("Loan Purpose", options=list(TE_MAPPINGS['loan_purpose'].keys()), index=list(TE_MAPPINGS['loan_purpose'].keys()).index(DEFAULT_INPUTS['loan_purpose']))
-            # Subgrade input is often optional/derived, use a default selection
             grade_subgrade = st.selectbox("Loan Subgrade (A1, B3, etc.)", options=list(TE_MAPPINGS['grade_subgrade'].keys()), index=list(TE_MAPPINGS['grade_subgrade'].keys()).index(DEFAULT_INPUTS['grade_subgrade']))
 
 
     # --- MAIN CONTENT LOGIC ---
     
-    # Load Model (or Mock Model)
     model = load_model(MODEL_PATH)
 
     # 1. Gather all inputs
@@ -263,8 +268,6 @@ def main():
     
     # COLUMN 1: PREDICTION GAUGE AND SUMMARY
     with col_score:
-        display_gauge(prediction_proba)
-        
         risk_level = display_gauge(prediction_proba)
 
         st.markdown(f"### Interpretation")
@@ -274,11 +277,11 @@ def main():
         This places the application in the **{risk_level}** category. The detailed breakdown on the right shows which specific input factors pushed the score higher or lower.
         """)
     
-    # COLUMN 2: APPLICANT METRICS (REQUEST 3: TWO COLUMNS)
+    # COLUMN 2: APPLICANT METRICS
     with col_metrics:
         st.markdown("### Applicant & Loan Metrics Summary")
         
-        # Two columns for the summary display (Request 3)
+        # Two columns for the summary display
         col_m1, col_m2 = st.columns(2)
         
         with col_m1:
@@ -299,9 +302,7 @@ def main():
     st.markdown("## Individual Prediction Explanation (SHAP Waterfall Plot)")
     st.info("The Waterfall plot shows how each feature (in the input sidebar) contributes to the final prediction score, relative to the model's average expected value.")
     
-    # SHAP PLOT (Adjusted to be visually equal to the combined height of the sections above)
-    # The sections above are the Score (approx height 6) + Metrics (approx height 4) -> Total height ~10
-    # Waterfall plot is large, so 7 should balance well with the vertical space added by titles/borders.
+    # SHAP PLOT
     try:
         fig_waterfall = plot_shap_waterfall(X_single, shap_values_class1, expected_value=0.6)
         st.pyplot(fig_waterfall, use_container_width=True)
