@@ -98,6 +98,8 @@ def app():
 
     model = load_model(MODEL_PATH)
     data_sample = generate_synthetic_data()
+    # Reorder columns to match the trained model's feature order
+    data_sample = data_sample[FINAL_FEATURES]
 
     # --- Section 1: Global Feature Importance (SHAP) ---
     st.header("1. Global Model Structure (SHAP Summary)")
