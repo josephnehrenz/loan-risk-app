@@ -6,19 +6,55 @@ import shap
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# --- Global Constants (Must match streamlit_app.py) ---
+# --- Global Constants ---
 MODEL_PATH = "xgboost_model.json" 
 FINAL_FEATURES = [ 
-    # NOTE: PASTE THE SAME EXACT LIST OF FEATURES HERE
     'annual_income', 
+    'debt_to_income_ratio', 
+    'credit_score', 
     'loan_amount', 
-    'cibil_score', 
-    'income_to_loan_ratio', 
-    'residue_time_to_loan_end',
-    'is_short_term_loan',
+    'interest_rate', 
+    'age', 
+    'monthly_income', 
+    'loan_term', 
+    'installment', 
+    'num_of_open_accounts', 
+    'total_credit_limit', 
+    'current_balance', 
+    'delinquency_history', 
+    'public_records', 
+    'num_of_delinquencies', 
+    'income_loan_ratio', 
+    'loan_to_income', 
+    'total_debt', 
+    'available_income', 
+    'monthly_payment_approx', 
+    'payment_to_income', 
+    'default_risk_score', 
+    'grade_number', 
+    'TE_gender', 
+    'TE_marital_status', 
+    'TE_education_level', 
+    'TE_employment_status', 
     'TE_loan_purpose', 
-    'TE_education', 
-    # ... all 19 features ...
+    'TE_grade_subgrade', 
+    'TE_grade_letter'
+]
+GLOBAL_MEAN_TARGET = 0.798820
+NUMERICAL_STATS_MAPPING = [
+'annual_income': {'mean': -0.00, 'std': 1.00, 'min': -1.58, 'max': 12.92},
+'debt_to_income_ratio': {'mean': -0.00, 'std': 1.00, 'min': -1.60, 'max': 7.38},
+'credit_score': {'mean': 0.00, 'std': 1.00, 'min': -5.16, 'max': 3.03},
+'loan_amount': {'mean': 0.00, 'std': 1.00, 'min': -2.10, 'max': 4.90},
+'interest_rate': {'mean': -0.00, 'std': 1.00, 'min': -4.56, 'max': 4.30},
+'income_loan_ratio': {'mean': -0.00, 'std': 1.00, 'min': -0.56, 'max': 44.59},
+'loan_to_income': {'mean': 0.00, 'std': 1.00, 'min': -1.16, 'max': 13.75},
+'total_debt': {'mean': -0.00, 'std': 1.00, 'min': -1.15, 'max': 25.68},
+'available_income': {'mean': 0.00, 'std': 1.00, 'min': -1.65, 'max': 14.12},
+'monthly_payment_approx': {'mean': 0.00, 'std': 1.00, 'min': -1.99, 'max': 7.21},
+'payment_to_income': {'mean': -0.00, 'std': 1.00, 'min': -1.12, 'max': 14.06},
+'default_risk_score': {'mean': -0.00, 'std': 1.00, 'min': -3.07, 'max': 6.90},
+'grade_number': {'mean': 0.00, 'std': 1.00, 'min': -1.42, 'max': 1.43}
 ]
 
 # --- 1. CACHED RESOURCES ---
@@ -32,28 +68,27 @@ def load_model(path):
 
 @st.cache_data
 def generate_synthetic_data(num_samples=1000):
-    """
-    Creates a small, synthetic dataset based on the feature list 
-    to be used for global SHAP analysis and plotting.
-    (Since the real training data is not in the app)
-    """
     data = {}
     for feature in FINAL_FEATURES:
         if feature.startswith('TE_'):
-            # For Target-Encoded features, generate values near the global mean (e.g., 0.8)
-            data[feature] = np.random.normal(loc=0.84, scale=0.05, size=num_samples)
+            # Use the global mean for target-encoded features
+            data[feature] = np.random.normal(loc=GLOBAL_MEAN_TARGET, scale=0.05, size=num_samples)
+        
+        elif feature in NUMERICAL_STATS_MAPPING:
+            # Use the actual mean and std from your scaled data
+            stats = NUMERICAL_STATS_MAPPING[feature]
+            data[feature] = np.random.normal(loc=stats['mean'], scale=stats['std'], size=num_samples)
+            
+            # Optional: Clip values to stay within the min/max range for realism
+            data[feature] = np.clip(data[feature], stats['min'], stats['max'])
+
         else:
-            # For numerical features, generate typical ranges
-            if 'income' in feature:
-                data[feature] = np.random.normal(loc=70000, scale=30000, size=num_samples)
-            elif 'loan_amount' in feature:
-                data[feature] = np.random.uniform(5000, 40000, size=num_samples)
-            elif 'cibil_score' in feature:
-                data[feature] = np.random.randint(600, 850, size=num_samples)
-            elif 'is_short_term_loan' in feature:
-                data[feature] = np.random.choice([0, 1], size=num_samples, p=[0.6, 0.4])
-            else:
-                data[feature] = np.random.rand(num_samples) # Fallback random data
+            # Handle the 'Binary' features if they weren't explicitly scaled/encoded.
+            # Assuming the Binary features in your log (like 'age', 'loan_term') 
+            # are actually numerical and were scaled along with the others. 
+            # If they are NOT in NUMERICAL_STATS_MAPPING, treat them as continuous for now
+            # and adjust if issues arise. For now, rely on the mapping.
+            pass 
 
     return pd.DataFrame(data)
 
