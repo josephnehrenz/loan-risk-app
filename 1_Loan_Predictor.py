@@ -115,7 +115,7 @@ def predict_and_explain(model, input_data):
 def main():
     model = load_model(MODEL_PATH)
     
-    st.title("💰 Loan Risk Advisor: Prediction Tool")
+    st.title("💰 Loan Risk Advisor: Applicant Prediction") # Updated Title
     st.markdown("---")
 
     st.sidebar.header("Input Loan Application Details")
@@ -174,10 +174,18 @@ def main():
         col1, col2 = st.columns([1, 2])
         
         with col1:
+            # IMPROVEMENT 1: Larger, blue probability display
+            st.markdown(
+                f"<h2 style='color: #1E90FF; font-weight: bold;'>Repayment Score:</h2>"
+                f"<h1 style='color: #1E90FF; font-weight: bolder;'>{risk_percentage:.1f}%</h1>", 
+                unsafe_allow_html=True
+            )
+            
+            # Metric for delta (smaller)
             st.metric(
-                label="Probability of Repayment (Low Risk)", 
-                value=f"{risk_percentage:.1f}%", 
-                delta=f"{(probability - GLOBAL_MEAN_TARGET) * 100:.1f} pts vs Global Average"
+                label="vs Global Average", 
+                value="", 
+                delta=f"{(probability - GLOBAL_MEAN_TARGET) * 100:.1f} pts"
             )
             
             # Simple assessment text
@@ -187,6 +195,29 @@ def main():
                 st.warning("Higher Risk of Default. 🛑")
             else:
                 st.info("Moderate Risk Profile. ⚠️")
+
+            st.markdown("---")
+            st.write("#### Key Input Summary")
+            
+            # IMPROVEMENT 2: Summarize inputs to balance the column
+            st.markdown("##### Financial Metrics (Scaled)")
+            st.markdown(f"**Annual Income:** `{user_input['annual_income']:.2f}`")
+            st.markdown(f"**Credit Score:** `{user_input['credit_score']:.2f}`")
+            st.markdown(f"**Loan Amount:** `{user_input['loan_amount']:.2f}`")
+            st.markdown(f"**Interest Rate:** `{user_input['interest_rate']:.2f}`")
+            
+            st.markdown("---")
+            st.markdown("##### Profile Metrics (Selected)")
+            
+            # Categorical Inputs
+            for original_col in ['gender', 'employment_status', 'loan_purpose', 'grade_letter']:
+                te_value = user_input[f'TE_{original_col}']
+                # Find the key (label) corresponding to the TE value
+                selected_label = next(
+                    (key for key, value in TE_MAPPINGS[original_col].items() if value == te_value),
+                    "N/A"
+                )
+                st.markdown(f"**{original_col.replace('_', ' ').title()}:** `{selected_label}`") # Removed the TE score display for cleaner UI
 
         # Display the SHAP Explanation (Local Interpretability)
         with col2:
