@@ -8,36 +8,29 @@ import seaborn as sns
 
 # --- Global Constants ---
 MODEL_PATH = "xgboost_model.json"
+
+# FIXED: Updated FINAL_FEATURES to the 20 features the model was actually trained on.
 FINAL_FEATURES = [
-    'annual_income',
-    'debt_to_income_ratio',
-    'credit_score',
-    'loan_amount',
-    'interest_rate',
-    'age',
-    'monthly_income',
-    'loan_term',
-    'installment',
-    'num_of_open_accounts',
-    'total_credit_limit',
-    'current_balance',
-    'delinquency_history',
-    'public_records',
-    'num_of_delinquencies',
-    'income_loan_ratio',
-    'loan_to_income',
-    'total_debt',
-    'available_income',
-    'monthly_payment_approx',
-    'payment_to_income',
-    'default_risk_score',
-    'grade_number',
-    'TE_gender',
-    'TE_marital_status',
-    'TE_education_level',
-    'TE_employment_status',
-    'TE_loan_purpose',
-    'TE_grade_subgrade'
+    'annual_income', 
+    'debt_to_income_ratio', 
+    'credit_score', 
+    'loan_amount', 
+    'interest_rate', 
+    'income_loan_ratio', 
+    'loan_to_income', 
+    'total_debt', 
+    'available_income', 
+    'monthly_payment_approx', 
+    'payment_to_income', 
+    'default_risk_score', 
+    'grade_number', 
+    'TE_gender', 
+    'TE_marital_status', 
+    'TE_education_level', 
+    'TE_employment_status', 
+    'TE_loan_purpose', 
+    'TE_grade_subgrade', 
+    'TE_grade_letter' # CRITICAL: This was in the model's training data.
 ]
 GLOBAL_MEAN_TARGET = 0.798820
 NUMERICAL_STATS_MAPPING = { 
@@ -64,16 +57,12 @@ def load_model(path):
     """Loads the trained XGBoost model once."""
     model = xgb.XGBClassifier()
     model.load_model(path)
-
-    # --- TEMPORARY DIAGNOSTIC LINE ---
-    print("\n--- MODEL EXPECTED FEATURE NAMES ---")
-    print(model.get_booster().feature_names)
-    # ----------------------------------
-
+    # The temporary print statements have been removed.
     return model
 
 @st.cache_data
 def generate_synthetic_data(num_samples=1000):
+    """Generates synthetic data for the Insights page analysis."""
     data = {}
     for feature in FINAL_FEATURES:
         if feature.startswith('TE_'):
@@ -89,8 +78,7 @@ def generate_synthetic_data(num_samples=1000):
             data[feature] = np.clip(data[feature], stats['min'], stats['max'])
 
         else:
-            # Handle features not in the mapping (e.g., 'age', 'loan_term', etc.)
-            # Assumes they are scaled features with mean 0, std 1.
+            # Assumes any other features are scaled features with mean 0, std 1.
             data[feature] = np.random.normal(loc=0.0, scale=1.0, size=num_samples)
 
     return pd.DataFrame(data)
@@ -104,7 +92,9 @@ def app():
 
     model = load_model(MODEL_PATH)
     data_sample = generate_synthetic_data()
-    # Reorder columns to match the trained model's feature order
+    
+    # CRITICAL FIX: Reorder columns to match the trained model's feature order
+    # This ensures the SHAP calculation doesn't throw a ValueError
     data_sample = data_sample[FINAL_FEATURES]
 
     # --- Section 1: Global Feature Importance (SHAP) ---
@@ -126,7 +116,7 @@ def app():
     # Plot the SHAP Summary Plot
     fig, ax = plt.subplots(figsize=(10, 6))
     # Pass the confirmed 2D matrix to the plot function
-    shap.summary_plot(shap_matrix, data_sample, show=False, max_display=15) 
+    shap.summary_plot(shap_matrix, data_sample, show=False, max_display=15, feature_names=FINAL_FEATURES) 
     st.pyplot(fig) 
 
     # --- Section 2: Feature Relationship Plots (New Charts) ---
