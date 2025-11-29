@@ -4,7 +4,7 @@ import datetime
 # --- Constants ---
 MODEL_DATE = datetime.date.today().strftime("%B %d, %Y")
 KAGGLE_COMPETITION = "Kaggle Loan Payback Prediction Challenge" 
-GITHUB_LINK = "https://github.com/yourusername/loan-risk-app" # <-- REMEMBER TO UPDATE THIS LINK!
+GITHUB_LINK = "https://github.com/josephnehrenz/loan-risk-app"
 
 # --- Page Function ---
 def app():
@@ -36,7 +36,7 @@ def app():
     st.header("Source Code & Deployment")
     st.markdown(f"The source code and the trained model are hosted publicly:")
     st.code(GITHUB_LINK)
-    st.link_button("View on GitHub", "https://github.com/josephnehrenz/loan-risk-app/tree/main", help="Opens the project repository in a new tab.")
+    st.link_button("View on GitHub", "https://github.com/josephnehrenz/loan-risk-app", help="Opens the project repository in a new tab.")
 
 if __name__ == "__main__":
     app()
