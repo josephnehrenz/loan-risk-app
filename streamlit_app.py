@@ -46,8 +46,7 @@ FINAL_FEATURES = ['annual_income',
                   'TE_education_level', 
                   'TE_employment_status', 
                   'TE_loan_purpose', 
-                  'TE_grade_subgrade', 
-                  'TE_grade_letter'
+                  'TE_grade_subgrade'
 ]
 
 # C. FEATURE CATEGORY LISTS
