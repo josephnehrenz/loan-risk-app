@@ -85,16 +85,28 @@ def load_model(path):
 def predict_and_explain(model, input_data):
     """Makes a prediction and calculates SHAP values."""
     
+    # Reorder columns to match the trained model's feature order
+    input_data = input_data[FINAL_FEATURES]
+    
     # 1. Prediction (returns probability of TARGET=1, i.e., loan paid back)
+    # [:, 1] gets the probability for the positive class (class 1)
     prediction_proba = model.predict_proba(input_data)[:, 1][0]
     
     # 2. SHAP Explanation
     explainer = shap.TreeExplainer(model)
-    # The explainer for the positive class (repayment) is shap_values[1]
-    shap_values = explainer.shap_values(input_data) 
     
-    # explainer.expected_value is needed for the waterfall plot's baseline
-    return prediction_proba, shap_values[1], explainer.expected_value[1]
+    # Calculate SHAP values ONLY ONCE. 
+    # This returns a list: [shap_values_class_0, shap_values_class_1]
+    shap_values_raw = explainer.shap_values(input_data)
+    
+    # 3. Final Return Values    
+    # shap_values_raw[1] is the SHAP array for the positive class (repayment)
+    shap_values = shap_values_raw[1][0] # Get the SHAP values for the first (and only) sample [0]
+    
+    # explainer.expected_value[1] is the base rate for the positive class
+    expected_value = explainer.expected_value[1]
+    
+    return prediction_proba, shap_values, expected_value
 
 
 # --- 3. APP LAYOUT AND LOGIC (The Home Page) ---
