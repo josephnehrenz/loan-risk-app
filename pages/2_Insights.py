@@ -64,6 +64,12 @@ def load_model(path):
     """Loads the trained XGBoost model once."""
     model = xgb.XGBClassifier()
     model.load_model(path)
+
+    # --- TEMPORARY DIAGNOSTIC LINE ---
+    print("\n--- MODEL EXPECTED FEATURE NAMES ---")
+    print(model.get_booster().feature_names)
+    # ----------------------------------
+
     return model
 
 @st.cache_data
