@@ -50,21 +50,40 @@ def load_model(path):
         return MockModel()
 
 
-# --- 3. MOCK DATA GENERATION (Now using correct feature names) ---
-def generate_mock_data(n_samples=100):
-    """Generates mock data and SHAP values for visualization using the correct feature names."""
+# --- 3. MOCK DATA GENERATION (CORRECTED SHAP CORRELATION) ---
+def generate_mock_data(n_samples=500):
+    """
+    Generates mock data and SHAP values, simulating realistic correlations 
+    for key features to ensure the SHAP summary plot displays clear patterns.
+    """
     np.random.seed(42)
     
     # 1. Create Mock Features: Use real feature names for the columns
     X = pd.DataFrame(np.random.randn(n_samples, len(FINAL_FEATURES)), columns=FINAL_FEATURES)
     
-    # 2. Add realistic variance to key features for better visualization
+    # 2. Add realistic variance to key features
     X['credit_score'] = np.random.normal(loc=0.5, scale=1.5, size=n_samples)
     X['annual_income'] = np.random.normal(loc=0.0, scale=2.0, size=n_samples)
     X['debt_to_income_ratio'] = np.random.uniform(low=-1.0, high=3.0, size=n_samples)
     
-    # 3. Generate mock SHAP values (centered around zero)
-    mock_shap_values = np.random.randn(n_samples, len(FINAL_FEATURES)) * 0.5
+    # 3. Initialize mock SHAP values (small random noise)
+    mock_shap_values = np.random.randn(n_samples, len(FINAL_FEATURES)) * 0.1
+    
+    # --- CRITICAL FIX: Add correlation for key features ---
+    
+    # A. Credit Score: High Score -> High (Positive) SHAP Value
+    idx_credit_score = FINAL_FEATURES.index('credit_score')
+    # Add a strong positive linear term: scale the feature value and add to SHAP value
+    mock_shap_values[:, idx_credit_score] += (X['credit_score'] * 0.8)
+    
+    # B. Annual Income: High Income -> High (Positive) SHAP Value
+    idx_annual_income = FINAL_FEATURES.index('annual_income')
+    mock_shap_values[:, idx_annual_income] += (X['annual_income'] * 0.6)
+    
+    # C. Debt to Income Ratio: High DTI -> Low (Negative) SHAP Value
+    idx_dti = FINAL_FEATURES.index('debt_to_income_ratio')
+    # Add a strong negative linear term
+    mock_shap_values[:, idx_dti] -= (X['debt_to_income_ratio'] * 0.7)
     
     # 4. Generate a mock expected value (base value)
     expected_value = 0.5 
@@ -74,7 +93,8 @@ def generate_mock_data(n_samples=100):
 # --- 4. INSIGHTS DASHBOARD LAYOUT ---
 def main():
     model = load_model(MODEL_PATH)
-    X, shap_values, expected_value = generate_mock_data(n_samples=500)
+    # Generate 1000 samples for a smoother summary plot
+    X, shap_values, expected_value = generate_mock_data(n_samples=1000)
     
     st.title("📊 Model Insights and Feature Analysis")
     st.markdown("---")
