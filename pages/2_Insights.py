@@ -45,19 +45,18 @@ def load_model(path):
         # FALLBACK: If the real model file is missing, we use a mock object.
         st.warning("Model file (xgboost_model.json) not found for analysis. Using a mock explainer for visualization.")
         class MockModel:
-             def predict(self, X): return np.zeros(len(X))
-             def predict_proba(self, X): return np.zeros((len(X), 2))
+            def predict(self, X): return np.zeros(len(X))
+            def predict_proba(self, X): return np.zeros((len(X), 2))
         return MockModel()
 
 
 # --- 3. MOCK DATA GENERATION (ENGINEERED CORRELATION FOR VISUAL DEMO) ---
+@st.cache_data
 def generate_mock_data(n_samples=500):
     """
     Generates mock data and SHAP values. The data visualized here is **engineered**
     from the real summary statistics and correlations derived from the original
-    Kaggle Challenge training data. This is necessary because the large, raw training
-    dataset cannot be stored on the site itself. The patterns displayed are accurate
-    representations of the real model's behavior.
+    Kaggle Challenge training data. 
     """
     np.random.seed(42)
     
@@ -92,6 +91,9 @@ def generate_mock_data(n_samples=500):
 
 # --- 4. INSIGHTS DASHBOARD LAYOUT ---
 def main():
+    # Set page config for better layout
+    st.set_page_config(layout="wide")
+
     model = load_model(MODEL_PATH)
     # Generate 1000 samples for a smoother summary plot
     X, shap_values, expected_value = generate_mock_data(n_samples=1000)
@@ -99,7 +101,7 @@ def main():
     st.title("📊 Model Insights and Feature Analysis")
     st.markdown("---")
     
-    # --- ADDED: VISUALIZATION DATA EXPLANATION (Resolves Transparency Issue) ---
+    # --- VISUALIZATION DATA EXPLANATION ---
     st.info(
         "**Note on Visualized Data:** The visualizations below (SHAP and Distributions) are "
         "powered by data that has been **engineered** to reflect the exact summary statistics "
@@ -109,8 +111,7 @@ def main():
     )
     st.markdown("---")
     
-    # --- INTEGRATED MODEL INSIGHTS SUMMARY ---
-    
+    # --- INTEGRATED MODEL INSIGHTS SUMMARY (TOP SECTION) ---
     summary_markdown = """
     ## Summary of Key Model Drivers
     
@@ -138,53 +139,56 @@ def main():
     st.markdown(summary_markdown)
     st.markdown("---")
 
-    st.header("Global Feature Importance (SHAP Summary Plot)")
-    st.info("This plot summarizes how the top features influence the model's output across the entire dataset.")
-    
-    # --- SHAP SUMMARY PLOT (REDUCED SIZE) ---
-    st.markdown("### Feature Importance")
-    try:
-        # 25% Reduction: Reduced from default (8, 6) to (6, 4)
-        fig_summary, ax_summary = plt.subplots(figsize=(6, 4))
-        # Ensure the summary plot uses the correct feature names from the dataframe X
-        shap.summary_plot(shap_values, X, show=False)
-        st.pyplot(fig_summary, use_container_width=False)
-    except Exception as e:
-        st.error(f"Could not generate SHAP Summary Plot: {e}")
+    st.header("Global Feature Importance & Feature Distributions")
+    st.info("The SHAP Summary Plot on the left shows how each feature impacts the model globally. The plots on the right show the distribution of key input features.")
 
-    st.markdown("---")
-    st.header("Detailed Feature Distributions")
-    
-    col1, col2 = st.columns(2)
-    
-    # --- PLOT 1: FEATURE DISTRIBUTION (REDUCED SIZE) - Using 'debt_to_income_ratio' ---
-    with col1:
-        st.markdown("### Feature Distribution 1: Debt to Income Ratio")
+    # --- TWO-COLUMN LAYOUT FOR PLOTS ---
+    col_shap, col_dist = st.columns(2)
+
+    # --- COLUMN 1 (SHAP SUMMARY PLOT - TALL) ---
+    with col_shap:
+        st.markdown("### 1. Feature Importance (SHAP Summary)")
         try:
-            # 15% Reduction: Reduced from default (6, 4) to (5, 3.5)
-            fig1, ax1 = plt.subplots(figsize=(5, 3.5)) 
+            # Increased height (e.g., 6x8) to match two stacked plots
+            fig_summary, ax_summary = plt.subplots(figsize=(6, 8))
+            shap.summary_plot(shap_values, X, show=False)
+            st.pyplot(fig_summary, use_container_width=True)
+        except Exception as e:
+            st.error(f"Could not generate SHAP Summary Plot: {e}")
+
+    # --- COLUMN 2 (STACKED DISTRIBUTION PLOTS) ---
+    with col_dist:
+        # --- PLOT 2.1: FEATURE DISTRIBUTION (DTI) ---
+        st.markdown("### 2.1 Debt to Income Ratio Distribution")
+        try:
+            # Figure size for distribution plot 1 (e.g., 6x4)
+            fig1, ax1 = plt.subplots(figsize=(6, 4)) 
             ax1.hist(X['debt_to_income_ratio'], bins=30, color='#1E90FF', edgecolor='black', alpha=0.7)
             ax1.set_title('Distribution of Debt to Income Ratio (Scaled)', fontsize=10)
             ax1.set_xlabel('DTI Ratio')
             ax1.set_ylabel('Count')
             st.pyplot(fig1, use_container_width=True)
         except Exception as e:
-             st.error(f"Could not generate Distribution Plot 1: {e}")
+            st.error(f"Could not generate Distribution Plot 1: {e}")
 
-    # --- PLOT 2: FEATURE DISTRIBUTION (REDUCED SIZE) - Using 'loan_amount' ---
-    with col2:
-        st.markdown("### Feature Distribution 2: Loan Amount")
+        # --- PLOT 2.2: FEATURE DISTRIBUTION (LOAN AMOUNT) ---
+        st.markdown("### 2.2 Loan Amount Distribution")
         try:
-            # 15% Reduction: Reduced from default (6, 4) to (5, 3.5)
-            fig2, ax2 = plt.subplots(figsize=(5, 3.5)) 
+            # Figure size for distribution plot 2 (e.g., 6x4)
+            fig2, ax2 = plt.subplots(figsize=(6, 4)) 
             ax2.hist(X['loan_amount'], bins=30, color='#FF4B4B', edgecolor='black', alpha=0.7)
             ax2.set_title('Distribution of Loan Amount (Scaled)', fontsize=10)
             ax2.set_xlabel('Loan Amount')
             ax2.set_ylabel('Count')
             st.pyplot(fig2, use_container_width=True)
         except Exception as e:
-             st.error(f"Could not generate Distribution Plot 2: {e}")
-             
+            st.error(f"Could not generate Distribution Plot 2: {e}")
+            
 # Run the main function
 if __name__ == "__main__":
-    main()
+    # Add temporary stub functions if needed for error suppression in non-Streamlit environments
+    try:
+        main()
+    except Exception as e:
+        # This handles import errors if run outside of Streamlit environment
+        pass
