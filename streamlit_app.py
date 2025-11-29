@@ -206,20 +206,21 @@ def main():
         # Repayment Probability Header (Standard size/format)
         st.write("#### Repayment Probability")
         
-        # Repayment Score Value (Large, bold, inside a pill bubble, left-justified)
+        # Repayment Score Value (Large, bold, inside a pill bubble, left-justified, fit-content width)
         st.markdown(
             f"""
             <div style="
                 background-color: #E0F2FF; 
-                border-radius: 50px; /* Pill shape */
-                padding: 15px 20px; /* Vertical and Horizontal Padding */
-                text-align: left; /* Left Justified */
+                border-radius: 50px; 
+                padding: 15px 20px; 
+                text-align: left; 
                 margin-bottom: 10px;
                 border: 1px solid #1E90FF;
+                width: fit-content; /* Only as wide as the content */
             ">
                 <span style="
                     color: #1E90FF; 
-                    font-size: 3.5rem; /* Increased size for prominence */
+                    font-size: 3.5rem; 
                     font-weight: 900;
                 ">{risk_percentage:.1f}%</span>
             </div>
@@ -272,8 +273,8 @@ def main():
         st.write("#### Feature Contribution for This Loan Applicant")
         st.info("The chart shows which features pushed the prediction toward repayment (Blue) or default (Red).")
         
-        # Matplotlib/SHAP rendering
-        fig, ax = plt.subplots(figsize=(8, 6))
+        # Matplotlib/SHAP rendering - Increased height to 6.6
+        fig, ax = plt.subplots(figsize=(8, 6.6)) 
         shap.waterfall_plot(
             shap.Explanation(
                 values=shap_values,
