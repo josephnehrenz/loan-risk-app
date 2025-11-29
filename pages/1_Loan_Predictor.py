@@ -174,7 +174,7 @@ def main():
         col1, col2 = st.columns([1, 2])
         
         with col1:
-            # IMPROVEMENT 1: Larger, blue probability display
+            # Larger, blue probability display
             st.markdown(
                 f"<h2 style='color: #1E90FF; font-weight: bold;'>Repayment Score:</h2>"
                 f"<h1 style='color: #1E90FF; font-weight: bolder;'>{risk_percentage:.1f}%</h1>", 
@@ -199,7 +199,7 @@ def main():
             st.markdown("---")
             st.write("#### Key Input Summary")
             
-            # IMPROVEMENT 2: Summarize inputs to balance the column
+            # Summarize inputs to balance the column
             st.markdown("##### Financial Metrics (Scaled)")
             st.markdown(f"**Annual Income:** `{user_input['annual_income']:.2f}`")
             st.markdown(f"**Credit Score:** `{user_input['credit_score']:.2f}`")
