@@ -8,13 +8,29 @@ import matplotlib.pyplot as plt
 # --- 1. CONFIGURATION AND CONSTANTS ---
 MODEL_PATH = "xgboost_model.json"
 
+# DEFINITIVE LIST OF ALL 20 FEATURES (Copied from p1_Loan_Predictor for dependency)
 FINAL_FEATURES = [
-    'annual_income', 'credit_score', 'loan_amount', 'interest_rate', 
-    'income_loan_ratio', 'TE_employment_status', 'TE_loan_purpose', 'TE_grade_letter' 
+    'annual_income', 
+    'debt_to_income_ratio', 
+    'credit_score', 
+    'loan_amount', 
+    'interest_rate', 
+    'income_loan_ratio', 
+    'loan_to_income', 
+    'total_debt', 
+    'available_income', 
+    'monthly_payment_approx', 
+    'payment_to_income', 
+    'default_risk_score', 
+    'grade_number', 
+    'TE_gender', 
+    'TE_marital_status', 
+    'TE_education_level', 
+    'TE_employment_status', 
+    'TE_loan_purpose', 
+    'TE_grade_subgrade', 
+    'TE_grade_letter' 
 ]
-# Extend FINAL_FEATURES to 20 for realistic mock data generation
-FINAL_FEATURES.extend([f'feature_{i}' for i in range(12)])
-FINAL_FEATURES = sorted(list(set(FINAL_FEATURES))) # Ensure 20 unique features for SHAP
 
 # --- 2. CACHED MODEL LOADING ---
 @st.cache_resource
@@ -27,7 +43,6 @@ def load_model(path):
         return model
     except Exception:
         # If the actual model file is not found, we return a mock model object
-        # to prevent the app from crashing.
         st.warning("Model file (xgboost_model.json) not found for analysis. Using a mock explainer for visualization.")
         class MockModel:
              def predict(self, X): return np.zeros(len(X))
@@ -35,16 +50,23 @@ def load_model(path):
         return MockModel()
 
 
-# --- 3. MOCK DATA GENERATION (Since raw data is not available) ---
+# --- 3. MOCK DATA GENERATION (Now using correct feature names) ---
 def generate_mock_data(n_samples=100):
-    """Generates mock data and SHAP values for visualization."""
+    """Generates mock data and SHAP values for visualization using the correct feature names."""
     np.random.seed(42)
+    
+    # 1. Create Mock Features: Use real feature names for the columns
     X = pd.DataFrame(np.random.randn(n_samples, len(FINAL_FEATURES)), columns=FINAL_FEATURES)
     
-    # Generate mock SHAP values (centered around zero)
+    # 2. Add realistic variance to key features for better visualization
+    X['credit_score'] = np.random.normal(loc=0.5, scale=1.5, size=n_samples)
+    X['annual_income'] = np.random.normal(loc=0.0, scale=2.0, size=n_samples)
+    X['debt_to_income_ratio'] = np.random.uniform(low=-1.0, high=3.0, size=n_samples)
+    
+    # 3. Generate mock SHAP values (centered around zero)
     mock_shap_values = np.random.randn(n_samples, len(FINAL_FEATURES)) * 0.5
     
-    # Generate a mock expected value (base value)
+    # 4. Generate a mock expected value (base value)
     expected_value = 0.5 
     
     return X, mock_shap_values, expected_value
@@ -94,6 +116,7 @@ def main():
     try:
         # 25% Reduction: Reduced from default (8, 6) to (6, 4)
         fig_summary, ax_summary = plt.subplots(figsize=(6, 4))
+        # Ensure the summary plot uses the correct feature names from the dataframe X
         shap.summary_plot(shap_values, X, show=False)
         st.pyplot(fig_summary, use_container_width=False)
     except Exception as e:
@@ -104,35 +127,31 @@ def main():
     
     col1, col2 = st.columns(2)
     
-    # --- PLOT 1: FEATURE DISTRIBUTION (REDUCED SIZE) ---
+    # --- PLOT 1: FEATURE DISTRIBUTION (REDUCED SIZE) - Using 'debt_to_income_ratio' ---
     with col1:
-        st.markdown("### Feature Distribution 1: Credit Score")
+        st.markdown("### Feature Distribution 1: Debt to Income Ratio")
         try:
             # 15% Reduction: Reduced from default (6, 4) to (5, 3.5)
             fig1, ax1 = plt.subplots(figsize=(5, 3.5)) 
-            ax1.hist(X['credit_score'], bins=30, color='#1E90FF', edgecolor='black', alpha=0.7)
-            ax1.set_title('Distribution of Credit Score (Scaled)', fontsize=10)
-            ax1.set_xlabel('Credit Score')
+            ax1.hist(X['debt_to_income_ratio'], bins=30, color='#1E90FF', edgecolor='black', alpha=0.7)
+            ax1.set_title('Distribution of Debt to Income Ratio (Scaled)', fontsize=10)
+            ax1.set_xlabel('DTI Ratio')
             ax1.set_ylabel('Count')
             st.pyplot(fig1, use_container_width=True)
-        except KeyError:
-            st.error("Mock data missing 'credit_score'.")
         except Exception as e:
              st.error(f"Could not generate Distribution Plot 1: {e}")
 
-    # --- PLOT 2: FEATURE DISTRIBUTION (REDUCED SIZE) ---
+    # --- PLOT 2: FEATURE DISTRIBUTION (REDUCED SIZE) - Using 'loan_amount' ---
     with col2:
-        st.markdown("### Feature Distribution 2: Annual Income")
+        st.markdown("### Feature Distribution 2: Loan Amount")
         try:
             # 15% Reduction: Reduced from default (6, 4) to (5, 3.5)
             fig2, ax2 = plt.subplots(figsize=(5, 3.5)) 
-            ax2.hist(X['annual_income'], bins=30, color='#FF4B4B', edgecolor='black', alpha=0.7)
-            ax2.set_title('Distribution of Annual Income (Scaled)', fontsize=10)
-            ax2.set_xlabel('Annual Income')
+            ax2.hist(X['loan_amount'], bins=30, color='#FF4B4B', edgecolor='black', alpha=0.7)
+            ax2.set_title('Distribution of Loan Amount (Scaled)', fontsize=10)
+            ax2.set_xlabel('Loan Amount')
             ax2.set_ylabel('Count')
             st.pyplot(fig2, use_container_width=True)
-        except KeyError:
-            st.error("Mock data missing 'annual_income'.")
         except Exception as e:
              st.error(f"Could not generate Distribution Plot 2: {e}")
              
