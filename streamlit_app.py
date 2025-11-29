@@ -199,18 +199,35 @@ def main():
     probability, shap_values, expected_value = predict_and_explain(model, input_df)
     risk_percentage = probability * 100
     
-    # Use two columns for the main content - Changed from [1, 2] to [1, 1] for 50/50 symmetry
+    # Use two columns for the main content - 50/50 symmetry
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Repayment Score - Using standard markdown for consistency, keeping blue style
+        # Repayment Probability Header (Now standard size/format)
+        st.write("#### Repayment Probability")
+        
+        # Repayment Score Value (Large, bold, inside a pill bubble)
         st.markdown(
-            f"<h3 style='color: #1E90FF; font-weight: bold;'>Repayment Probability:</h3>"
-            f"<h1 style='color: #1E90FF; font-weight: bolder; margin-top: -10px;'>{risk_percentage:.1f}%</h1>", 
+            f"""
+            <div style="
+                background-color: #E0F2FF; 
+                border-radius: 10px; 
+                padding: 15px; 
+                text-align: center; 
+                margin-bottom: 10px;
+                border: 1px solid #1E90FF;
+            ">
+                <span style="
+                    color: #1E90FF; 
+                    font-size: 3.5rem; /* Increased size for prominence */
+                    font-weight: 900;
+                ">{risk_percentage:.1f}%</span>
+            </div>
+            """,
             unsafe_allow_html=True
         )
         
-        # Metric for delta (smaller)
+        # Metric for delta (smaller pill bubble)
         st.metric(
             label="vs Global Average", 
             value="", 
