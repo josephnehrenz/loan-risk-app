@@ -203,38 +203,44 @@ def main():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Repayment Probability Header (Standard size/format)
         st.write("#### Repayment Probability")
         
-        # Repayment Score Value (Large, bold, inside a pill bubble, left-justified, fit-content width)
-        st.markdown(
-            f"""
-            <div style="
-                background-color: #E0F2FF; 
-                border-radius: 50px; 
-                padding: 15px 20px; 
-                text-align: left; 
-                margin-bottom: 10px;
-                border: 1px solid #1E90FF;
-                width: fit-content; /* Only as wide as the content */
-            ">
-                <span style="
-                    color: #1E90FF; 
-                    font-size: 3.5rem; 
-                    font-weight: 900;
-                ">{risk_percentage:.1f}%</span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        # Use columns to put the Probability Pill and the Delta Metric on the same line
+        prob_col, metric_col = st.columns([0.65, 0.35]) 
         
-        # Metric for delta (smaller pill bubble)
-        st.metric(
-            label="vs Global Average", 
-            value="", 
-            delta=f"{(probability - GLOBAL_MEAN_TARGET) * 100:.1f} pts"
-        )
+        with prob_col:
+            # Repayment Score Value (Pill shape, fit-content width)
+            st.markdown(
+                f"""
+                <div style="
+                    background-color: #E0F2FF; 
+                    border-radius: 50px; 
+                    padding: 15px 20px; 
+                    text-align: left; 
+                    margin-bottom: 10px;
+                    border: 1px solid #1E90FF;
+                    width: fit-content; /* Only as wide as the content */
+                ">
+                    <span style="
+                        color: #1E90FF; 
+                        font-size: 3.5rem; 
+                        font-weight: 900;
+                    ">{risk_percentage:.1f}%</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
         
+        with metric_col:
+            # Add vertical space to better align the metric with the large percentage
+            st.markdown("<div style='padding-top: 15px;'>", unsafe_allow_html=True)
+            st.metric(
+                label="vs Global Average", 
+                value="", 
+                delta=f"{(probability - GLOBAL_MEAN_TARGET) * 100:.1f} pts"
+            )
+            st.markdown("</div>", unsafe_allow_html=True)
+
         # Simple assessment text
         if probability > 0.85:
             st.success("High Likelihood of Repayment. 👍")
@@ -273,8 +279,8 @@ def main():
         st.write("#### Feature Contribution for This Loan Applicant")
         st.info("The chart shows which features pushed the prediction toward repayment (Blue) or default (Red).")
         
-        # Matplotlib/SHAP rendering
-        fig, ax = plt.subplots(figsize=(8, 8)) 
+        # Matplotlib/SHAP rendering - Increased height to (8, 12) for definite vertical stretch
+        fig, ax = plt.subplots(figsize=(8, 12)) 
         shap.waterfall_plot(
             shap.Explanation(
                 values=shap_values,
