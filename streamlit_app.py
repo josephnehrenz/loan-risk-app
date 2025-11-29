@@ -127,7 +127,7 @@ def predict_and_explain(model, input_data):
 def main():
     model = load_model(MODEL_PATH)
     
-    st.title("💰 Loan Risk Advisor: Applicant Prediction") 
+    st.title("📈 Loan Risk Advisor: Applicant Prediction") 
     st.markdown("---") # Visual separator
 
     st.sidebar.header("Input Loan Application Details")
