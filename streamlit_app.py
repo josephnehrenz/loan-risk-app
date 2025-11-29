@@ -203,17 +203,17 @@ def main():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Repayment Probability Header (Now standard size/format)
+        # Repayment Probability Header (Standard size/format)
         st.write("#### Repayment Probability")
         
-        # Repayment Score Value (Large, bold, inside a pill bubble)
+        # Repayment Score Value (Large, bold, inside a pill bubble, left-justified)
         st.markdown(
             f"""
             <div style="
                 background-color: #E0F2FF; 
-                border-radius: 10px; 
-                padding: 15px; 
-                text-align: center; 
+                border-radius: 50px; /* Pill shape */
+                padding: 15px 20px; /* Vertical and Horizontal Padding */
+                text-align: left; /* Left Justified */
                 margin-bottom: 10px;
                 border: 1px solid #1E90FF;
             ">
