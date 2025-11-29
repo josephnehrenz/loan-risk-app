@@ -149,7 +149,7 @@ def main():
     with col_shap:
         st.markdown("### 1. Feature Importance (SHAP Summary)")
         try:
-            # Increased height (e.g., 6x8) to match two stacked plots
+            # SHAP Plot height maintained at 8
             fig_summary, ax_summary = plt.subplots(figsize=(6, 8))
             shap.summary_plot(shap_values, X, show=False)
             st.pyplot(fig_summary, use_container_width=True)
@@ -161,8 +161,8 @@ def main():
         # --- PLOT 2.1: FEATURE DISTRIBUTION (DTI) ---
         st.markdown("### 2.1 Debt to Income Ratio Distribution")
         try:
-            # Figure size for distribution plot 1 (e.g., 6x4)
-            fig1, ax1 = plt.subplots(figsize=(6, 4)) 
+            # REDUCED HEIGHT to 3.5 to balance total height with SHAP plot
+            fig1, ax1 = plt.subplots(figsize=(6, 3.5)) 
             ax1.hist(X['debt_to_income_ratio'], bins=30, color='#1E90FF', edgecolor='black', alpha=0.7)
             ax1.set_title('Distribution of Debt to Income Ratio (Scaled)', fontsize=10)
             ax1.set_xlabel('DTI Ratio')
@@ -174,8 +174,8 @@ def main():
         # --- PLOT 2.2: FEATURE DISTRIBUTION (LOAN AMOUNT) ---
         st.markdown("### 2.2 Loan Amount Distribution")
         try:
-            # Figure size for distribution plot 2 (e.g., 6x4)
-            fig2, ax2 = plt.subplots(figsize=(6, 4)) 
+            # REDUCED HEIGHT to 3.5 to balance total height with SHAP plot
+            fig2, ax2 = plt.subplots(figsize=(6, 3.5)) 
             ax2.hist(X['loan_amount'], bins=30, color='#FF4B4B', edgecolor='black', alpha=0.7)
             ax2.set_title('Distribution of Loan Amount (Scaled)', fontsize=10)
             ax2.set_xlabel('Loan Amount')
