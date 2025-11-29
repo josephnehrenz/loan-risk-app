@@ -162,7 +162,7 @@ def main():
         st.markdown("### 2.1 Debt to Income Ratio Distribution")
         try:
             # REDUCED HEIGHT to 3.5 to balance total height with SHAP plot
-            fig1, ax1 = plt.subplots(figsize=(6, 3.5)) 
+            fig1, ax1 = plt.subplots(figsize=(6, 3)) 
             ax1.hist(X['debt_to_income_ratio'], bins=30, color='#1E90FF', edgecolor='black', alpha=0.7)
             ax1.set_title('Distribution of Debt to Income Ratio (Scaled)', fontsize=10)
             ax1.set_xlabel('DTI Ratio')
@@ -175,7 +175,7 @@ def main():
         st.markdown("### 2.2 Loan Amount Distribution")
         try:
             # REDUCED HEIGHT to 3.5 to balance total height with SHAP plot
-            fig2, ax2 = plt.subplots(figsize=(6, 3.5)) 
+            fig2, ax2 = plt.subplots(figsize=(6, 3)) 
             ax2.hist(X['loan_amount'], bins=30, color='#FF4B4B', edgecolor='black', alpha=0.7)
             ax2.set_title('Distribution of Loan Amount (Scaled)', fontsize=10)
             ax2.set_xlabel('Loan Amount')
