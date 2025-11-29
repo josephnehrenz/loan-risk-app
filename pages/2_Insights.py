@@ -84,6 +84,8 @@ def generate_synthetic_data(num_samples=1000):
             data[feature] = np.clip(data[feature], stats['min'], stats['max'])
 
         else:
+            # Handle features not in the mapping (e.g., 'age', 'loan_term', etc.)
+            # Assumes they are scaled features with mean 0, std 1.
             data[feature] = np.random.normal(loc=0.0, scale=1.0, size=num_samples)
 
     return pd.DataFrame(data)
@@ -146,16 +148,12 @@ def app():
         
     # Chart B: Feature Distribution (Histogram)
     with col2:
-        # Ensure 'credit_score' is used as 'cibil_score' wasn't in the final features list.
         st.subheader("Distribution of Credit Score")
         fig, ax = plt.subplots(figsize=(8, 6))
         sns.histplot(data_sample['credit_score'], kde=True, bins=30, color='skyblue', ax=ax)
         ax.axvline(data_sample['credit_score'].mean(), color='red', linestyle='--', label='Mean Score')
         ax.set_title("Distribution of Credit Scores (Scaled)")
         st.pyplot(fig) 
-
-[Image of a histogram plot showing the frequency distribution of Credit scores]
-
 
 
 if __name__ == "__main__":
