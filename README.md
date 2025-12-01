@@ -57,7 +57,7 @@ The model uses 20 carefully engineered features:
 ## Live Demo
 
 Try the live app here:  
-**[https://your-app-name.streamlit.app](https://loan-repayment-risk-app.streamlit.app/)**
+**[https://loan-repayment-risk-app.streamlit.app/](https://loan-repayment-risk-app.streamlit.app/)**
 
 ## Project Structure
 
@@ -76,7 +76,7 @@ To run this application locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/loan-risk-advisor.git
+git clone https://github.com/your-github-username/loan-risk-advisor.git
 cd loan-risk-advisor
 
 # Install dependencies
